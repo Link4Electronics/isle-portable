@@ -439,6 +439,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
+	fprintf(stderr, "DBG SDL_AppIterate\n");
 	if (g_closed) {
 		return SDL_APP_SUCCESS;
 	}
@@ -486,6 +487,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 		g_isle->MoveVirtualMouseViaJoystick();
 	}
 
+	fprintf(stderr, "DBG SDL_AppIterate: returning SDL_APP_CONTINUE\n");
 	return SDL_APP_CONTINUE;
 }
 
@@ -1400,6 +1402,7 @@ bool IsleApp::LoadConfig()
 // FUNCTION: ISLE 0x402c20
 inline bool IsleApp::Tick()
 {
+	fprintf(stderr, "DBG IsleApp::Tick\n");
 	// GLOBAL: ISLE 0x4101c0
 	static MxLong g_lastFrameTime = 0;
 
@@ -1486,6 +1489,7 @@ inline bool IsleApp::Tick()
 		}
 	}
 
+	fprintf(stderr, "DBG IsleApp::Tick: Tick returning true after Start\n");
 	return true;
 }
 
