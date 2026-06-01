@@ -1895,9 +1895,9 @@ void LegoAnimationManager::PurgeExtra(MxBool p_und)
 			LegoROI* roi = m_extras[i].m_roi;
 
 			if (roi != NULL) {
-				MxU16 prefix = *(MxU16*) roi->GetName();
+				const char* prefix = roi->GetName();
 				MxLong und = ((m_numAllowedExtras - 2) * 280000 / 18) + 20000;
-				MxBool maOrPa = prefix == TWOCC('m', 'a') || prefix == TWOCC('p', 'a');
+				MxBool maOrPa = (prefix[0] == 'm' && prefix[1] == 'a') || (prefix[0] == 'p' && prefix[1] == 'a');
 
 				if ((p_und && !maOrPa) ||
 					(g_characters[m_extras[i].m_characterId].m_unk0x10 >= 0 && time - m_extras[i].m_unk0x08 > und &&

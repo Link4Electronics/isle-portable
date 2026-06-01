@@ -1,6 +1,7 @@
 #include "mxdsobject.h"
 
 #include "mxdsaction.h"
+#include "mxendian.h"
 #include "mxdsanim.h"
 #include "mxdsevent.h"
 #include "mxdsfile.h"
@@ -265,6 +266,7 @@ MxDSObject* DeserializeDSObjectDispatch(MxU8*& p_source, MxS16 p_flags)
 // FUNCTION: LEGO1 0x100c0280
 MxDSObject* CreateStreamObject(MxDSFile* p_file, MxS16 p_ofs)
 {
+	MxU8 header[8];
 	MxU8* buf;
 	ISLE_MMCKINFO tmpChunk;
 
@@ -272,8 +274,20 @@ MxDSObject* CreateStreamObject(MxDSFile* p_file, MxS16 p_ofs)
 		return NULL;
 	}
 
-	if (p_file->Read((MxU8*) &tmpChunk.ckid, 8) == 0 && tmpChunk.ckid == FOURCC('M', 'x', 'S', 't')) {
-		if (p_file->Read((MxU8*) &tmpChunk.ckid, 8) == 0 && tmpChunk.ckid == FOURCC('M', 'x', 'O', 'b')) {
+	if (p_file->Read(header, 8) != 0) {
+		return NULL;
+	}
+	tmpChunk.ckid = EndianReadLE32(header);
+	tmpChunk.cksize = EndianReadLE32(header + 4);
+
+	if (tmpChunk.ckid == FOURCC('M', 'x', 'S', 't')) {
+		if (p_file->Read(header, 8) != 0) {
+			return NULL;
+		}
+		tmpChunk.ckid = EndianReadLE32(header);
+		tmpChunk.cksize = EndianReadLE32(header + 4);
+
+		if (tmpChunk.ckid == FOURCC('M', 'x', 'O', 'b')) {
 
 			buf = new MxU8[tmpChunk.cksize];
 			if (!buf) {
@@ -281,6 +295,7 @@ MxDSObject* CreateStreamObject(MxDSFile* p_file, MxS16 p_ofs)
 			}
 
 			if (p_file->Read(buf, tmpChunk.cksize) != 0) {
+				delete[] buf;
 				return NULL;
 			}
 
