@@ -322,7 +322,7 @@ MxResult MxDSBuffer::ParseChunk(
 				if (m_unk0x30->GetFlags() & MxDSAction::c_bit3 &&
 					(m_unk0x30->GetLoopCount() > 1 || m_unk0x30->GetDuration() == -1)) {
 
-					if (p_action->GetObjectId() == p_header->GetObjectId()) {
+					if (m_unk0x30->HasId(p_header->GetObjectId())) {
 						MxU32 val = p_controller->GetProvider()->GetBufferForDWords()[m_unk0x30->GetObjectId()];
 
 						m_unk0x30->SetUnknown94(val);
@@ -342,10 +342,19 @@ MxResult MxDSBuffer::ParseChunk(
 					p_header = NULL;
 				}
 				else {
-					if (p_action->GetObjectId() == p_header->GetObjectId() &&
-						p_controller->VTable0x30(p_action) == SUCCESS) {
-						p_controller->GetProvider()->VTable0x20(p_action);
-						result = 1;
+					if (m_unk0x30->HasId(p_header->GetObjectId())) {
+						fprintf(stderr, "DBG ParseChunk: EOS actionObjId=0x%08x headerObjId=0x%08x MATCH\n",
+							p_action->GetObjectId(), p_header->GetObjectId());
+						MxResult v30 = p_controller->VTable0x30(p_action);
+						fprintf(stderr, "DBG ParseChunk: VTable0x30 returned %d\n", v30);
+						if (v30 == SUCCESS) {
+							p_controller->GetProvider()->VTable0x20(p_action);
+							result = 1;
+						}
+					}
+					else {
+						fprintf(stderr, "DBG ParseChunk: EOS actionObjId=0x%08x headerObjId=0x%08x NO MATCH\n",
+							p_action->GetObjectId(), p_header->GetObjectId());
 					}
 				}
 			}

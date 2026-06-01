@@ -72,6 +72,13 @@ inline MxS32 UnalignedRead(MxU8* p_source)
 	return EndianReadLES32(p_source);
 }
 
+
+template <>
+inline MxLong UnalignedRead(MxU8* p_source)
+{
+	return EndianReadLES32(p_source);
+}
+
 template <>
 inline double UnalignedRead(MxU8* p_source)
 {
