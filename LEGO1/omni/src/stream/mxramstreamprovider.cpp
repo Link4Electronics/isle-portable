@@ -125,24 +125,26 @@ MxU32 ReadData(MxU8* p_buffer, MxU32 p_size)
 					MxU8* data3 = data;
 					data = MxDSChunk::End(data3);
 
-					if ((UnalignedRead<MxU32>(data2) == FOURCC('M', 'x', 'C', 'h')) &&
-						(*MxStreamChunk::IntoFlags(data2) & DS_CHUNK_SPLIT)) {
-						if (*MxStreamChunk::IntoObjectId(data2) == *MxStreamChunk::IntoObjectId(data3) &&
-							(*MxStreamChunk::IntoFlags(data3) & DS_CHUNK_SPLIT) &&
-							*MxStreamChunk::IntoTime(data2) == *MxStreamChunk::IntoTime(data3)) {
-							MxDSBuffer::Append(data2, data3);
-							continue;
-						}
-						else {
-							*MxStreamChunk::IntoFlags(data2) &= ~DS_CHUNK_SPLIT;
-						}
+				if ((UnalignedRead<MxU32>(data2) == FOURCC('M', 'x', 'C', 'h')) &&
+					(EndianReadLE16(MxStreamChunk::IntoFlags(data2)) & DS_CHUNK_SPLIT)) {
+					if (EndianReadLE32(MxStreamChunk::IntoObjectId(data2)) == EndianReadLE32(MxStreamChunk::IntoObjectId(data3)) &&
+						(EndianReadLE16(MxStreamChunk::IntoFlags(data3)) & DS_CHUNK_SPLIT) &&
+						EndianReadLE32(MxStreamChunk::IntoTime(data2)) == EndianReadLE32(MxStreamChunk::IntoTime(data3))) {
+						MxDSBuffer::Append(data2, data3);
+						continue;
 					}
+					else {
+						MxU16 flags = EndianReadLE16(MxStreamChunk::IntoFlags(data2));
+						flags &= ~DS_CHUNK_SPLIT;
+						EndianWriteLE16(MxStreamChunk::IntoFlags(data2), flags);
+					}
+				}
 
-					data2 = MxDSChunk::End(data2);
-					memmove(data2, data3, MxDSChunk::Size(data3));
+				data2 = MxDSChunk::End(data2);
+				memmove(data2, data3, MxDSChunk::Size(data3));
 
-					if (UnalignedRead<MxU32>((MxU8*) MxStreamChunk::IntoObjectId(data2)) == id &&
-						(*MxStreamChunk::IntoFlags(data2) & DS_CHUNK_END_OF_STREAM)) {
+				if (UnalignedRead<MxU32>((MxU8*) MxStreamChunk::IntoObjectId(data2)) == id &&
+					(EndianReadLE16(MxStreamChunk::IntoFlags(data2)) & DS_CHUNK_END_OF_STREAM)) {
 						break;
 					}
 				}
@@ -156,6 +158,10 @@ MxU32 ReadData(MxU8* p_buffer, MxU32 p_size)
 		}
 	}
 
-	*MxStreamChunk::IntoFlags(data2) &= ~DS_CHUNK_SPLIT;
+	{
+		MxU16 flags = EndianReadLE16(MxStreamChunk::IntoFlags(data2));
+		flags &= ~DS_CHUNK_SPLIT;
+		EndianWriteLE16(MxStreamChunk::IntoFlags(data2), flags);
+	}
 	return MxDSChunk::Size(data2) + (MxU32) (data2 - p_buffer);
 }

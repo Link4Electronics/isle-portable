@@ -295,8 +295,8 @@ MxResult MxDSBuffer::ParseChunk(
 			buffer->SetSourceBuffer(p_header->GetBuffer());
 		}
 
-		MxU16* flags = MxStreamChunk::IntoFlags(buffer->GetBuffer());
-		*flags = p_header->GetChunkFlags() & ~DS_CHUNK_SPLIT;
+		MxU16 flags = p_header->GetChunkFlags() & ~DS_CHUNK_SPLIT;
+		EndianWriteLE16(MxStreamChunk::IntoFlags(buffer->GetBuffer()), flags);
 
 		delete p_header;
 		(*p_streamingAction)->SetUnknowna0(buffer);
