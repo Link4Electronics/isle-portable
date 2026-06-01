@@ -264,6 +264,12 @@ void LegoModelPresenter::ReadyTickle()
 	else {
 		MxStreamChunk* chunk = m_subscriber->PeekData();
 
+		while (chunk != NULL && chunk->GetTime() <= m_action->GetElapsedTime() && chunk->GetLength() == 0) {
+			m_subscriber->PopData();
+			m_subscriber->FreeDataChunk(chunk);
+			chunk = m_subscriber->PeekData();
+		}
+
 		if (chunk != NULL && chunk->GetTime() <= m_action->GetElapsedTime()) {
 			chunk = m_subscriber->PopData();
 			MxResult result = CreateROI(chunk);

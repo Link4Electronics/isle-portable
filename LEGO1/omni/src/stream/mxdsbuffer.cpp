@@ -337,10 +337,7 @@ MxResult MxDSBuffer::ParseChunk(
 		}
 
 		if (p_header) {
-			if ((p_header->GetChunkFlags() & DS_CHUNK_END_OF_STREAM) && p_header->GetLength() == 0) {
-				delete p_header;
-			}
-			else if (p_header->SendChunk(p_controller->GetSubscriberList(), TRUE, p_action->GetUnknown24()) != SUCCESS) {
+			if (p_header->SendChunk(p_controller->GetSubscriberList(), TRUE, p_action->GetUnknown24()) != SUCCESS) {
 				delete p_header;
 			}
 		}
