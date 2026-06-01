@@ -238,14 +238,20 @@ MxResult LegoModelPresenter::CreateROI(
 // FUNCTION: BETA10 0x100991c2
 void LegoModelPresenter::ReadyTickle()
 {
+	fprintf(stderr, "DBG ReadyTickle enter this=%p m_roi=%p m_subscriber=%p m_action=%p elapsedTime=%d\n",
+		this, m_roi, m_subscriber, m_action,
+		m_action ? (int) m_action->GetElapsedTime() : -999);
+
 	if (m_compositePresenter != NULL && m_compositePresenter->IsA("LegoEntityPresenter") &&
 		m_compositePresenter->GetCurrentTickleState() <= e_ready) {
+		fprintf(stderr, "DBG ReadyTickle composite not ready yet\n");
 		return;
 	}
 
 	ParseExtra();
 
 	if (m_roi != NULL) {
+		fprintf(stderr, "DBG ReadyTickle roi already set\n");
 		if (m_compositePresenter && m_compositePresenter->IsA("LegoEntityPresenter")) {
 			((LegoEntityPresenter*) m_compositePresenter)->GetInternalEntity()->SetROI(m_roi, m_addedToView, TRUE);
 			((LegoEntityPresenter*) m_compositePresenter)
@@ -264,18 +270,36 @@ void LegoModelPresenter::ReadyTickle()
 	else {
 		MxStreamChunk* chunk = m_subscriber->PeekData();
 
+		fprintf(stderr, "DBG ReadyTickle initial peek chunk=%p\n", chunk);
+		if (chunk) {
+			fprintf(stderr, "DBG ReadyTickle  time=%d len=%u flags=0x%04x objId=0x%02x\n",
+				(int) chunk->GetTime(), chunk->GetLength(), chunk->GetChunkFlags(), chunk->GetObjectId());
+		}
+
 		while (chunk != NULL && chunk->GetTime() <= m_action->GetElapsedTime() && chunk->GetLength() == 0) {
+			fprintf(stderr, "DBG ReadyTickle draining zero-length chunk time=%d objId=0x%02x flags=0x%04x\n",
+				(int) chunk->GetTime(), chunk->GetObjectId(), chunk->GetChunkFlags());
 			m_subscriber->PopData();
 			m_subscriber->FreeDataChunk(chunk);
 			chunk = m_subscriber->PeekData();
+
+			fprintf(stderr, "DBG ReadyTickle after drain peek chunk=%p\n", chunk);
+			if (chunk) {
+				fprintf(stderr, "DBG ReadyTickle  time=%d len=%u flags=0x%04x objId=0x%02x\n",
+					(int) chunk->GetTime(), chunk->GetLength(), chunk->GetChunkFlags(), chunk->GetObjectId());
+			}
 		}
 
 		if (chunk != NULL && chunk->GetTime() <= m_action->GetElapsedTime()) {
+			fprintf(stderr, "DBG ReadyTickle about to CreateROI time=%d len=%u flags=0x%04x objId=0x%02x\n",
+				(int) chunk->GetTime(), chunk->GetLength(), chunk->GetChunkFlags(), chunk->GetObjectId());
 			chunk = m_subscriber->PopData();
 			MxResult result = CreateROI(chunk);
+			fprintf(stderr, "DBG ReadyTickle CreateROI returned %d\n", result);
 			m_subscriber->FreeDataChunk(chunk);
 
 			if (result == SUCCESS) {
+				fprintf(stderr, "DBG ReadyTickle CreateROI SUCCESS, adding to 3dmanager\n");
 				VideoManager()->Get3DManager()->Add(*m_roi);
 				VideoManager()->Get3DManager()->Moved(*m_roi);
 
@@ -293,9 +317,15 @@ void LegoModelPresenter::ReadyTickle()
 				ProgressTickleState(e_starting);
 			}
 
+			fprintf(stderr, "DBG ReadyTickle calling EndAction\n");
 			EndAction();
 		}
+		else {
+			fprintf(stderr, "DBG ReadyTickle no suitable chunk found (chunk=%p elapsedTime=%d)\n",
+				chunk, m_action ? (int) m_action->GetElapsedTime() : -999);
+		}
 	}
+	fprintf(stderr, "DBG ReadyTickle exit\n");
 }
 
 // FUNCTION: LEGO1 0x100801b0
