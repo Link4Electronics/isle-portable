@@ -1040,12 +1040,13 @@ MxResult IsleApp::SetupWindow()
 	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, m_fullScreen);
 	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, WINDOW_TITLE);
 #if defined(MINIWIN) && !defined(__3DS__) && !defined(WINDOWS_STORE) && !defined(__vita__) && !defined(__DJGPP__)
-	// Probe whether OpenGL context creation works with our preferred attributes.
-	// On big-endian (ppc64be), GLX may not have a matching FBConfig, causing
-	// SDL_GL_CreateContext to fail with GLXBadFBConfig. In that case we skip
-	// the OPENGL window property so that all GL backends fail to enumerate
-	// and the software renderer (Miniwin Emulation) is selected as fallback.
-	if (ProbeOpenGL()) {
+	// Check env var to force software rendering (e.g. on big-endian where
+	// GL context creation and rendering may be broken).
+	const char* forceSw = SDL_getenv("ISLE_FORCE_SOFTWARE");
+	if (forceSw && forceSw[0] == '1') {
+		SDL_Log("ISLE_FORCE_SOFTWARE=1, skipping GL — using software renderer");
+	}
+	else if (ProbeOpenGL()) {
 		SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
