@@ -79,7 +79,11 @@ if(DOWNLOAD_DEPENDENCIES)
 endif()
 
 if(ISLE_USE_LWS)
-    if(DOWNLOAD_DEPENDENCIES)
+    # Try system libwebsockets first
+    find_package(Libwebsockets QUIET)
+    if(Libwebsockets_FOUND)
+        message(STATUS "Found system libwebsockets")
+    elseif(DOWNLOAD_DEPENDENCIES)
         include(FetchContent)
 
         # Fetch mbedTLS for TLS/WSS support in libwebsockets
@@ -136,7 +140,7 @@ if(ISLE_USE_LWS)
             target_compile_options(websockets PRIVATE /WX-)
         endif()
     else()
-        find_package(Libwebsockets REQUIRED)
+        message(FATAL_ERROR "libwebsockets not found. Install it or enable DOWNLOAD_DEPENDENCIES")
     endif()
 endif()
 
