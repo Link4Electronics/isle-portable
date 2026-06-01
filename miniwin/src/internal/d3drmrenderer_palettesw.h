@@ -101,6 +101,11 @@ private:
 
 inline static void Direct3DRMPaletteSW_EnumDevice(LPD3DENUMDEVICESCALLBACK cb, void* ctx)
 {
+	const char* forceSw = SDL_getenv("ISLE_FORCE_SOFTWARE");
+	if (forceSw && forceSw[0] == '1') {
+		return;
+	}
+
 	D3DDEVICEDESC halDesc = {};
 
 	D3DDEVICEDESC helDesc = {};
