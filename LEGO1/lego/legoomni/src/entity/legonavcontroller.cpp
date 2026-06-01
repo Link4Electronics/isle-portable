@@ -716,7 +716,6 @@ MxLong LegoNavController::Notify(MxParam& p_param)
 			LegoWorld* currentWorld = CurrentWorld();
 			if (currentWorld != NULL) {
 				InfocenterState* state = (InfocenterState*) GameState()->GetState("InfocenterState");
-				assert(state);
 
 				if (state != NULL && state->m_state != InfocenterState::e_exitQueried && currentWorld->Escape()) {
 					BackgroundAudioManager()->Stop();
