@@ -20,13 +20,13 @@ MxResult MxRAMStreamController::Open(const char* p_filename)
 			return FAILURE;
 		}
 
-		ReadData(
+		MxU32 size = ReadData(
 			((MxRAMStreamProvider*) m_provider)->GetBufferOfFileSize(),
 			((MxRAMStreamProvider*) m_provider)->GetFileSize()
 		);
 		m_buffer.SetBufferPointer(
 			((MxRAMStreamProvider*) m_provider)->GetBufferOfFileSize(),
-			((MxRAMStreamProvider*) m_provider)->GetFileSize()
+			size
 		);
 		return SUCCESS;
 	}
