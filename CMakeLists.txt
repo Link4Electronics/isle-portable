@@ -235,47 +235,66 @@ message(STATUS "Compile shaders:        ${ISLE_COMPILE_SHADERS}")
 
 add_library(Isle::iniparser INTERFACE IMPORTED)
 
-if (DOWNLOAD_DEPENDENCIES)
-  # FetchContent downloads and configures dependencies
-  message(STATUS "Fetching SDL3 and iniparser. This might take a while...")
+set(ISLE_SDL3_GIT_REPO "https://github.com/libsdl-org/SDL.git" CACHE STRING "The SDL3 git repo")
+set(ISLE_SDL3_GIT_TAG "main" CACHE STRING "The SDL3 git tag")
+
+# Try system SDL3 first before falling back to FetchContent
+if(ANDROID)
+  # Built by Gradle
+  find_package(SDL3 REQUIRED CONFIG COMPONENTS Shared)
+elseif(WINDOWS_STORE OR NINTENDO_SWITCH)
+  # These platforms always download SDL3
+  set(_sdl3_need_fetch ON)
+else()
+  find_package(SDL3 CONFIG QUIET)
+  if(SDL3_FOUND)
+    message(STATUS "Found system SDL3 (${SDL3_VERSION})")
+  elseif(DOWNLOAD_DEPENDENCIES)
+    include(FetchContent)
+    FetchContent_Declare(
+      SDL3
+      GIT_REPOSITORY "${ISLE_SDL3_GIT_REPO}"
+      GIT_TAG "${ISLE_SDL3_GIT_TAG}"
+      UPDATE_DISCONNECTED TRUE
+      EXCLUDE_FROM_ALL
+    )
+    FetchContent_MakeAvailable(SDL3)
+  else()
+    message(FATAL_ERROR "SDL3 not found. Install it or enable DOWNLOAD_DEPENDENCIES")
+  endif()
+endif()
+
+if(_sdl3_need_fetch)
+  message(STATUS "Fetching SDL3. This might take a while...")
   include(FetchContent)
 
-  if(ANDROID)
-    # Built by Gradle
-    find_package(SDL3 REQUIRED CONFIG COMPONENTS Shared)
-  else()
-    if (WINDOWS_STORE)
-      FetchContent_Declare(
-        SDL3
-        GIT_REPOSITORY "https://github.com/Helloyunho/SDL3-uwp.git"
-        GIT_TAG "main"
-        EXCLUDE_FROM_ALL
-      )
-    elseif (NINTENDO_SWITCH)
-      FetchContent_Declare(
-        SDL3
-        # Official repo missing Threads support?
-        #GIT_REPOSITORY "https://github.com/devkitPro/SDL.git"
-        #GIT_TAG "switch-sdl-3.2"
-        #GIT_REPOSITORY "https://github.com/vs49688/SDL.git"
-        GIT_REPOSITORY "https://github.com/SnepOMatic/SDL3-Switch.git"
-        GIT_TAG "switch-sdl-3.2.14"
-        EXCLUDE_FROM_ALL
-      )
-      set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON CACHE BOOL "Disable PCH globally" FORCE)
-    else()
-      set(ISLE_SDL3_GIT_REPO "https://github.com/libsdl-org/SDL.git" CACHE STRING "The SDL3 git repo")
-      set(ISLE_SDL3_GIT_TAG "main" CACHE STRING "The SDL3 git tag")
-      FetchContent_Declare(
-        SDL3
-        GIT_REPOSITORY "${ISLE_SDL3_GIT_REPO}"
-        GIT_TAG "${ISLE_SDL3_GIT_TAG}"
-        UPDATE_DISCONNECTED TRUE
-        EXCLUDE_FROM_ALL
-      )
-    endif()
-    FetchContent_MakeAvailable(SDL3)
+  if (WINDOWS_STORE)
+    FetchContent_Declare(
+      SDL3
+      GIT_REPOSITORY "https://github.com/Helloyunho/SDL3-uwp.git"
+      GIT_TAG "main"
+      EXCLUDE_FROM_ALL
+    )
+  elseif (NINTENDO_SWITCH)
+    FetchContent_Declare(
+      SDL3
+      # Official repo missing Threads support?
+      #GIT_REPOSITORY "https://github.com/devkitPro/SDL.git"
+      #GIT_TAG "switch-sdl-3.2"
+      #GIT_REPOSITORY "https://github.com/vs49688/SDL.git"
+      GIT_REPOSITORY "https://github.com/SnepOMatic/SDL3-Switch.git"
+      GIT_TAG "switch-sdl-3.2.14"
+      EXCLUDE_FROM_ALL
+    )
+    set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON CACHE BOOL "Disable PCH globally" FORCE)
   endif()
+  FetchContent_MakeAvailable(SDL3)
+endif()
+unset(_sdl3_need_fetch)
+
+if(DOWNLOAD_DEPENDENCIES)
+  message(STATUS "Fetching iniparser. This might take a while...")
+  include(FetchContent)
 
   FetchContent_Declare(
     iniparser
@@ -291,11 +310,6 @@ if (DOWNLOAD_DEPENDENCIES)
     target_link_libraries(Isle::iniparser INTERFACE iniparser-static)
   endblock()
 else()
-  # find_package looks for already-installed system packages.
-  # Configure with `-DCMAKE_PREFIX_PATH="/path/to/package1;/path/to/package2"`
-  # to add search paths.
-  find_package(SDL3 CONFIG REQUIRED)
-
   find_package(iniparser REQUIRED CONFIG)
   if(TARGET iniparser-shared)
     target_link_libraries(Isle::iniparser INTERFACE iniparser-shared)
