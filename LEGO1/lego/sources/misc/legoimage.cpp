@@ -3,6 +3,7 @@
 #include "decomp.h"
 #include "legostorage.h"
 #include "memory.h"
+#include "mxendian.h"
 
 DECOMP_SIZE_ASSERT(LegoPaletteEntry, 0x03);
 DECOMP_SIZE_ASSERT(LegoImage, 0x310);
@@ -77,12 +78,15 @@ LegoResult LegoImage::Read(LegoStorage* p_storage, LegoU32 p_square)
 	if ((result = p_storage->Read(&width, sizeof(LegoU32))) != SUCCESS) {
 		return result;
 	}
+	width = EndianReadLE32(&width);
 	if ((result = p_storage->Read(&height, sizeof(LegoU32))) != SUCCESS) {
 		return result;
 	}
+	height = EndianReadLE32(&height);
 	if ((result = p_storage->Read(&count, sizeof(LegoU32))) != SUCCESS) {
 		return result;
 	}
+	count = EndianReadLE32(&count);
 	if (m_palette) {
 		SDL_DestroyPalette(m_palette);
 	}
@@ -156,13 +160,17 @@ LegoResult LegoImage::Read(LegoStorage* p_storage, LegoU32 p_square)
 LegoResult LegoImage::Write(LegoStorage* p_storage)
 {
 	LegoResult result;
-	if ((result = p_storage->Write(&m_surface->w, sizeof(int))) != SUCCESS) {
+	MxU32 leVal;
+	leVal = SDL_SwapLE32(m_surface->w);
+	if ((result = p_storage->Write(&leVal, sizeof(MxU32))) != SUCCESS) {
 		return result;
 	}
-	if ((result = p_storage->Write(&m_surface->h, sizeof(int))) != SUCCESS) {
+	leVal = SDL_SwapLE32(m_surface->h);
+	if ((result = p_storage->Write(&leVal, sizeof(MxU32))) != SUCCESS) {
 		return result;
 	}
-	if ((result = p_storage->Write(&m_palette->ncolors, sizeof(int))) != SUCCESS) {
+	leVal = SDL_SwapLE32(m_palette->ncolors);
+	if ((result = p_storage->Write(&leVal, sizeof(MxU32))) != SUCCESS) {
 		return result;
 	}
 	if (m_palette) {

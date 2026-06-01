@@ -2,6 +2,7 @@
 #define MXUTILITIES_H
 
 #include "lego1_export.h"
+#include "mxendian.h"
 #include "mxtypes.h"
 
 #include <SDL3/SDL_stdinc.h>
@@ -45,6 +46,48 @@ T UnalignedRead(MxU8* p_source)
 	T value;
 	memcpy(&value, p_source, sizeof(T));
 	return value;
+}
+
+template <>
+inline MxU16 UnalignedRead(MxU8* p_source)
+{
+	return EndianReadLE16(p_source);
+}
+
+template <>
+inline MxS16 UnalignedRead(MxU8* p_source)
+{
+	return EndianReadLES16(p_source);
+}
+
+template <>
+inline MxU32 UnalignedRead(MxU8* p_source)
+{
+	return EndianReadLE32(p_source);
+}
+
+template <>
+inline MxS32 UnalignedRead(MxU8* p_source)
+{
+	return EndianReadLES32(p_source);
+}
+
+template <>
+inline MxLong UnalignedRead(MxU8* p_source)
+{
+	return EndianReadLES32(p_source);
+}
+
+template <>
+inline double UnalignedRead(MxU8* p_source)
+{
+	return EndianReadLEDouble(p_source);
+}
+
+template <>
+inline float UnalignedRead(MxU8* p_source)
+{
+	return EndianReadLEFloat(p_source);
 }
 
 template <class T>

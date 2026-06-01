@@ -3,6 +3,7 @@
 #include "decomp.h"
 #include "mxbitmap.h"
 #include "mxdsmediaaction.h"
+#include "mxendian.h"
 #include "mxmisc.h"
 #include "mxpalette.h"
 #include "mxvideomanager.h"
@@ -30,6 +31,7 @@ void MxFlcPresenter::LoadHeader(MxStreamChunk* p_chunk)
 {
 	m_flcHeader = (FLIC_HEADER*) new MxU8[p_chunk->GetLength()];
 	memcpy(m_flcHeader, p_chunk->GetData(), p_chunk->GetLength());
+	EndianSwapFLICHeader(*m_flcHeader);
 }
 
 // FUNCTION: LEGO1 0x100b34d0
@@ -55,12 +57,15 @@ void MxFlcPresenter::LoadFrame(MxStreamChunk* p_chunk)
 	MxU8* rects = data;
 	data += rectCount * sizeof(MxRect32);
 
+	FLIC_FRAME* frame = (FLIC_FRAME*) data;
+	EndianSwapFLICFrame(*frame);
+
 	MxBool decodedColorMap;
 	DecodeFLCFrame(
 		&m_frameBitmap->GetBitmapInfo()->m_bmiHeader,
 		m_frameBitmap->GetImage(),
 		m_flcHeader,
-		(FLIC_FRAME*) data,
+		frame,
 		&decodedColorMap
 	);
 
@@ -69,7 +74,12 @@ void MxFlcPresenter::LoadFrame(MxStreamChunk* p_chunk)
 	}
 
 	for (MxS32 i = 0; i < rectCount; i++) {
-		MxRect32 rect = UnalignedRead<MxRect32>(rects);
+		MxRect32 rect(
+			EndianReadLES32(rects + 0),
+			EndianReadLES32(rects + 4),
+			EndianReadLES32(rects + 8),
+			EndianReadLES32(rects + 12)
+		);
 		rects += sizeof(MxRect32);
 		rect += m_location;
 		MVideoManager()->InvalidateRect(rect);

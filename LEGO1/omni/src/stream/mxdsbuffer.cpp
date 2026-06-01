@@ -3,6 +3,7 @@
 #include "mxdiskstreamcontroller.h"
 #include "mxdschunk.h"
 #include "mxdsstreamingaction.h"
+#include "mxendian.h"
 #include "mxmain.h"
 #include "mxmisc.h"
 #include "mxstreamchunk.h"
@@ -464,7 +465,8 @@ MxResult MxDSBuffer::CalcBytesRemaining(MxU8* p_data)
 			if (m_writeOffset == m_bytesRemaining) {
 				MxU32 length =
 					UnalignedRead<MxU32>((MxU8*) MxStreamChunk::IntoLength(m_pBuffer)) + MxStreamChunk::GetHeaderSize();
-				memcpy(m_pBuffer + 4, &length, sizeof(length));
+				MxU32 leLength = SDL_SwapLE32(length);
+				memcpy(m_pBuffer + 4, &leLength, sizeof(leLength));
 			}
 
 			m_bytesRemaining -= bytesRead;
@@ -541,9 +543,12 @@ MxResult MxDSBuffer::FUN_100c7090(MxDSBuffer* p_buf)
 MxResult MxDSBuffer::Append(MxU8* p_buffer1, MxU8* p_buffer2)
 {
 	if (p_buffer1 && p_buffer2) {
-		MxU32 size = ((MxU32*) p_buffer2)[1] - MxDSChunk::GetHeaderSize();
-		memcpy(p_buffer1 + ((MxU32*) p_buffer1)[1] + 8, p_buffer2 + MxDSChunk::GetHeaderSize() + 8, size);
-		((MxU32*) p_buffer1)[1] += size;
+		MxU32 size2 = EndianReadLE32(p_buffer2 + 4);
+		MxU32 size1 = EndianReadLE32(p_buffer1 + 4);
+		MxU32 copySize = size2 - MxDSChunk::GetHeaderSize();
+		memcpy(p_buffer1 + size1 + 8, p_buffer2 + MxDSChunk::GetHeaderSize() + 8, copySize);
+		size1 += copySize;
+		EndianWriteLE32(p_buffer1 + 4, size1);
 		return SUCCESS;
 	}
 	return FAILURE;

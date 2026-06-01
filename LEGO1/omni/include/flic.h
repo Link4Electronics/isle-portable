@@ -9,6 +9,8 @@
 #include <windows.h>
 #endif
 
+#include "mxendian.h"
+
 enum FLI_CHUNK_TYPE {
 	FLI_CHUNK_COLOR256 = 4,  // 256-level color palette info
 	FLI_CHUNK_SS2 = 7,       // Word-oriented delta compression
@@ -46,6 +48,33 @@ typedef struct FLIC_FRAME : FLIC_CHUNK {
 	WORD width; /* Frame width override (if non-zero) */   // 0x0c
 	WORD height; /* Frame height override (if non-zero) */ // 0x0e
 } FLIC_FRAME;
+
+inline void EndianSwapFLICChunk(FLIC_CHUNK& p_chunk)
+{
+	p_chunk.size = EndianReadLE32(&p_chunk.size);
+	p_chunk.type = EndianReadLE16(&p_chunk.type);
+}
+
+inline void EndianSwapFLICHeader(FLIC_HEADER& p_header)
+{
+	EndianSwapFLICChunk(p_header);
+	p_header.frames = EndianReadLE16(&p_header.frames);
+	p_header.width = EndianReadLE16(&p_header.width);
+	p_header.height = EndianReadLE16(&p_header.height);
+	p_header.depth = EndianReadLE16(&p_header.depth);
+	p_header.flags = EndianReadLE16(&p_header.flags);
+	p_header.speed = EndianReadLE32(&p_header.speed);
+}
+
+inline void EndianSwapFLICFrame(FLIC_FRAME& p_frame)
+{
+	EndianSwapFLICChunk(p_frame);
+	p_frame.chunks = EndianReadLE16(&p_frame.chunks);
+	p_frame.delay = EndianReadLE16(&p_frame.delay);
+	p_frame.reserved = EndianReadLE16(&p_frame.reserved);
+	p_frame.width = EndianReadLE16(&p_frame.width);
+	p_frame.height = EndianReadLE16(&p_frame.height);
+}
 
 void DecodeFLCFrame(
 	LPBITMAPINFOHEADER p_bitmapHeader,

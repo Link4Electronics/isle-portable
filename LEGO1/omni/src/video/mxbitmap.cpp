@@ -1,6 +1,7 @@
 #include "mxbitmap.h"
 
 #include "decomp.h"
+#include "mxendian.h"
 #include "mxpalette.h"
 #include "mxutilities.h"
 
@@ -214,6 +215,12 @@ MxResult MxBitmap::LoadFile(SDL_IOStream* p_handle)
 		goto done;
 	}
 
+	hdr.bfType = EndianReadLE16(&hdr.bfType);
+	hdr.bfSize = EndianReadLE32(&hdr.bfSize);
+	hdr.bfReserved1 = EndianReadLE16(&hdr.bfReserved1);
+	hdr.bfReserved2 = EndianReadLE16(&hdr.bfReserved2);
+	hdr.bfOffBits = EndianReadLE32(&hdr.bfOffBits);
+
 	if (hdr.bfType != g_bitmapSignature) {
 		goto done;
 	}
@@ -226,6 +233,18 @@ MxResult MxBitmap::LoadFile(SDL_IOStream* p_handle)
 	if (!SDL_ReadIO(p_handle, m_info, MxBitmapInfoSize())) {
 		goto done;
 	}
+
+	m_info->m_bmiHeader.biSize = EndianReadLE32(&m_info->m_bmiHeader.biSize);
+	m_info->m_bmiHeader.biWidth = EndianReadLES32(&m_info->m_bmiHeader.biWidth);
+	m_info->m_bmiHeader.biHeight = EndianReadLES32(&m_info->m_bmiHeader.biHeight);
+	m_info->m_bmiHeader.biPlanes = EndianReadLE16(&m_info->m_bmiHeader.biPlanes);
+	m_info->m_bmiHeader.biBitCount = EndianReadLE16(&m_info->m_bmiHeader.biBitCount);
+	m_info->m_bmiHeader.biCompression = EndianReadLE32(&m_info->m_bmiHeader.biCompression);
+	m_info->m_bmiHeader.biSizeImage = EndianReadLE32(&m_info->m_bmiHeader.biSizeImage);
+	m_info->m_bmiHeader.biXPelsPerMeter = EndianReadLES32(&m_info->m_bmiHeader.biXPelsPerMeter);
+	m_info->m_bmiHeader.biYPelsPerMeter = EndianReadLES32(&m_info->m_bmiHeader.biYPelsPerMeter);
+	m_info->m_bmiHeader.biClrUsed = EndianReadLE32(&m_info->m_bmiHeader.biClrUsed);
+	m_info->m_bmiHeader.biClrImportant = EndianReadLE32(&m_info->m_bmiHeader.biClrImportant);
 
 	if (m_info->m_bmiHeader.biBitCount != 8) {
 		goto done;

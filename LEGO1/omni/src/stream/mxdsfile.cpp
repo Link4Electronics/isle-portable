@@ -2,6 +2,7 @@
 
 #include "decomp.h"
 #include "mxdebug.h"
+#include "mxendian.h"
 
 #include <SDL3/SDL.h>
 #include <stdio.h>
@@ -85,6 +86,9 @@ MxResult MxDSFile::ReadChunks()
 	m_io.Read(&m_lengthInDWords, 4);
 	m_pBuffer = new MxU32[m_lengthInDWords];
 	m_io.Read(m_pBuffer, m_lengthInDWords * 4);
+	for (MxU32 i = 0; i < m_lengthInDWords; i++) {
+		m_pBuffer[i] = EndianReadLE32(&m_pBuffer[i]);
+	}
 	return SUCCESS;
 }
 

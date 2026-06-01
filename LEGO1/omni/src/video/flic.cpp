@@ -186,6 +186,7 @@ short DecodeChunks(
 
 	for (short subchunk = 0; subchunk < (short) p_flcFrame->chunks; subchunk++) {
 		FLIC_CHUNK* chunk = (FLIC_CHUNK*) p_flcSubchunks;
+		EndianSwapFLICChunk(*chunk);
 		p_flcSubchunks += chunk->size;
 
 		switch (chunk->type) {
@@ -233,8 +234,7 @@ void DecodeColorPackets(LPBITMAPINFOHEADER p_bitmapHeader, BYTE* p_data)
 {
 	short colorIndex = 0;
 	BYTE* colors = p_data;
-	short* pPackets = (short*) colors;
-	short packets = *pPackets;
+	short packets = EndianReadLES16(colors);
 	colors += 2;
 
 	while (--packets >= 0) {
@@ -319,12 +319,9 @@ void DecodeLC(LPBITMAPINFOHEADER p_bitmapHeader, BYTE* p_pixelData, BYTE* p_data
 {
 	short xofs = 0;
 	short yofs = 0;
-	short* word_data = (short*) p_data;
-	BYTE* data = (BYTE*) word_data + 4;
-	short row = p_flcHeader->height - (*word_data + yofs) - 1;
-
-	word_data++;
-	short lines = *word_data;
+	BYTE* data = p_data + 4;
+	short row = p_flcHeader->height - (EndianReadLES16(p_data) + yofs) - 1;
+	short lines = EndianReadLES16(p_data + 2);
 
 	while (--lines >= 0) {
 		short column = xofs;
@@ -373,7 +370,8 @@ void DecodeSS2(LPBITMAPINFOHEADER p_bitmapHeader, BYTE* p_pixelData, BYTE* p_dat
 
 	// The first word in the data following the chunk header contains the number of lines in the chunk.
 	// The line count does not include skipped lines.
-	short lines = *(short*) data.word++;
+	short lines = EndianReadLES16(data.byte);
+	data.byte += 2;
 
 	// LINE: BETA10 0x1013e666
 	short row = p_flcHeader->height - yofs - 1;
@@ -387,7 +385,8 @@ skip_lines:
 
 start_packet:
 	// LINE: BETA10 0x1013e692
-	token = *(short*) data.word++;
+	token = EndianReadLES16(data.byte);
+	data.byte += 2;
 
 	if (token >= 0) {
 		goto column_loop;
@@ -398,7 +397,8 @@ start_packet:
 	}
 
 	WritePixel(p_bitmapHeader, p_pixelData, xmax, row, token);
-	token = *(short*) data.word++;
+	token = EndianReadLES16(data.byte);
+	data.byte += 2;
 
 	// LINE: BETA10 0x1013e6ef
 	if (!token) {
@@ -437,8 +437,9 @@ start_packet:
 		}
 
 		type = -type;
-		WORD* p_pixel = data.word++;
-		WritePixelPairs(p_bitmapHeader, p_pixelData, column, row, *p_pixel, type >> 1);
+		WORD pixelWord = EndianReadLE16(data.byte);
+		data.byte += 2;
+		WritePixelPairs(p_bitmapHeader, p_pixelData, column, row, pixelWord, type >> 1);
 		column += type;
 		// LINE: BETA10 0x1013e813
 		if (--token != 0) {

@@ -5,6 +5,7 @@
 #include "mxdsbuffer.h"
 #include "mxdsfile.h"
 #include "mxdsstreamingaction.h"
+#include "mxendian.h"
 #include "mxmain.h"
 #include "mxramstreamprovider.h"
 #include "mxstreamcontroller.h"
@@ -329,13 +330,14 @@ MxResult MxDiskStreamProvider::FUN_100d1b20(MxDSStreamingAction* p_action)
 #define IntoType(p) ((MxU32*) (p))
 
 	while (data) {
-		if (*IntoType(data) != FOURCC('M', 'x', 'O', 'b') &&
-			*MxStreamChunk::IntoTime(data) > p_action->GetUnknown9c()) {
-			*IntoType(data) = FOURCC('p', 'a', 'd', ' ');
+		if (EndianReadLE32(data) != FOURCC('M', 'x', 'O', 'b') &&
+			EndianReadLES32((MxU8*)MxStreamChunk::IntoTime(data)) > p_action->GetUnknown9c()) {
+			EndianWriteLE32(data, FOURCC('p', 'a', 'd', ' '));
 
 			// DECOMP: prefer order that matches retail versus beta
-			*(MxU32*) (data + 4) = buffer->GetBuffer() + buffer->GetWriteOffset() - data - 8;
-			memset(data + 8, 0, *(MxU32*) (data + 4));
+			MxU32 sizeVal = (MxU32)(buffer->GetBuffer() + buffer->GetWriteOffset() - data - 8);
+			EndianWriteLE32(data + 4, sizeVal);
+			memset(data + 8, 0, sizeVal);
 			size = ReadData(buffer->GetBuffer(), buffer->GetWriteOffset());
 
 			buffer = new MxDSBuffer();
@@ -353,7 +355,7 @@ MxResult MxDiskStreamProvider::FUN_100d1b20(MxDSStreamingAction* p_action)
 			MxU32 unk0x14 = p_action->GetUnknowna0()->GetUnknown14();
 
 			for (data = p_action->GetUnknowna0()->GetBuffer();
-				 *MxStreamChunk::IntoTime(data) <= p_action->GetUnknown9c();
+				 EndianReadLES32((MxU8*)MxStreamChunk::IntoTime(data)) <= p_action->GetUnknown9c();
 				 data = MxDSChunk::End(data)) {
 				unk0x14 += MxDSChunk::Size(data);
 			}
