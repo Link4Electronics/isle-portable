@@ -86,6 +86,7 @@ MxResult MxRAMStreamController::DeserializeObject(MxDSStreamingAction& p_action)
 	AUTOLOCK(m_criticalSection);
 	MxResult result;
 	MxDSStreamingAction* value = NULL;
+	MxBool stillInList;
 	int iter = 0;
 
 	fprintf(stderr, "DBG DeserializeObject: entering loop, p_action.GetObjectId()=0x%08x GetUnknown24()=%d\n",
@@ -96,7 +97,7 @@ MxResult MxRAMStreamController::DeserializeObject(MxDSStreamingAction& p_action)
 		m_buffer.FUN_100c6f80(p_action.GetUnknown94());
 		result = m_buffer.FUN_100c67b0(this, &p_action, &value);
 		fprintf(stderr, "DBG DeserializeObject: FUN_100c67b0 returned %d\n", result);
-		MxBool stillInList = m_unk0x3c.Find(&p_action) != NULL;
+		stillInList = m_unk0x3c.Find(&p_action) != NULL;
 		fprintf(stderr, "DBG DeserializeObject:   after Find, stillInList=%d\n", stillInList);
 	} while (stillInList);
 
