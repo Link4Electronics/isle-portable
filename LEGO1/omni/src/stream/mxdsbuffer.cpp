@@ -465,7 +465,7 @@ MxResult MxDSBuffer::CalcBytesRemaining(MxU8* p_data)
 			if (m_writeOffset == m_bytesRemaining) {
 				MxU32 length =
 					UnalignedRead<MxU32>((MxU8*) MxStreamChunk::IntoLength(m_pBuffer)) + MxStreamChunk::GetHeaderSize();
-				MxU32 leLength = SDL_SwapLE32(length);
+				MxU32 leLength = SDL_Swap32LE(length);
 				memcpy(m_pBuffer + 4, &leLength, sizeof(leLength));
 			}
 

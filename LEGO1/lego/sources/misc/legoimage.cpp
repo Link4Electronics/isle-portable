@@ -161,15 +161,15 @@ LegoResult LegoImage::Write(LegoStorage* p_storage)
 {
 	LegoResult result;
 	MxU32 leVal;
-	leVal = SDL_SwapLE32(m_surface->w);
+	leVal = SDL_Swap32LE(m_surface->w);
 	if ((result = p_storage->Write(&leVal, sizeof(MxU32))) != SUCCESS) {
 		return result;
 	}
-	leVal = SDL_SwapLE32(m_surface->h);
+	leVal = SDL_Swap32LE(m_surface->h);
 	if ((result = p_storage->Write(&leVal, sizeof(MxU32))) != SUCCESS) {
 		return result;
 	}
-	leVal = SDL_SwapLE32(m_palette->ncolors);
+	leVal = SDL_Swap32LE(m_palette->ncolors);
 	if ((result = p_storage->Write(&leVal, sizeof(MxU32))) != SUCCESS) {
 		return result;
 	}

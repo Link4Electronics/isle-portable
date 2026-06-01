@@ -600,7 +600,7 @@ MxU16 MXIOINFO::Ascend(ISLE_MMCKINFO* p_chunkInfo, MxU16 p_ascend)
 				m_info.dwFlags |= MMIO_DIRTY;
 			}
 			else {
-				MxU32 leSize = SDL_SwapLE32(size);
+				MxU32 leSize = SDL_Swap32LE(size);
 				m_info.lDiskOffset = SDL_SeekIO(M_FILE, ofs, SDL_IO_SEEK_SET);
 
 				if (m_info.lDiskOffset == ofs) {
