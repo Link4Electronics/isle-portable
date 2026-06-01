@@ -951,6 +951,41 @@ MxU8 IsleApp::MapMouseButtonFlagsToModifier(SDL_MouseButtonFlags p_flags)
 	return modifier;
 }
 
+static bool ProbeOpenGL()
+{
+	if (!SDL_GL_LoadLibrary(NULL)) {
+		SDL_Log("SDL_GL_LoadLibrary failed: %s", SDL_GetError());
+		return false;
+	}
+
+	SDL_PropertiesID props = SDL_CreateProperties();
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, 1);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, 1);
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, true);
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
+
+	SDL_Window* testWindow = SDL_CreateWindowWithProperties(props);
+	SDL_DestroyProperties(props);
+	if (!testWindow) {
+		SDL_Log("ProbeOpenGL: SDL_CreateWindowWithProperties failed: %s", SDL_GetError());
+		return false;
+	}
+
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
+	SDL_GLContext context = SDL_GL_CreateContext(testWindow);
+	bool available = (context != NULL);
+	if (context) {
+		SDL_GL_DestroyContext(context);
+	}
+	else {
+		SDL_Log("ProbeOpenGL: SDL_GL_CreateContext failed: %s", SDL_GetError());
+	}
+	SDL_DestroyWindow(testWindow);
+	return available;
+}
+
 // FUNCTION: ISLE 0x4023e0
 MxResult IsleApp::SetupWindow()
 {
@@ -1005,9 +1040,19 @@ MxResult IsleApp::SetupWindow()
 	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, m_fullScreen);
 	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, WINDOW_TITLE);
 #if defined(MINIWIN) && !defined(__3DS__) && !defined(WINDOWS_STORE) && !defined(__vita__) && !defined(__DJGPP__)
-	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	// Probe whether OpenGL context creation works with our preferred attributes.
+	// On big-endian (ppc64be), GLX may not have a matching FBConfig, causing
+	// SDL_GL_CreateContext to fail with GLXBadFBConfig. In that case we skip
+	// the OPENGL window property so that all GL backends fail to enumerate
+	// and the software renderer (Miniwin Emulation) is selected as fallback.
+	if (ProbeOpenGL()) {
+		SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	}
+	else {
+		SDL_Log("OpenGL not available, falling back to software renderer");
+	}
 #endif
 
 	window = SDL_CreateWindowWithProperties(props);
