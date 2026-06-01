@@ -89,18 +89,12 @@ MxResult MxRAMStreamController::DeserializeObject(MxDSStreamingAction& p_action)
 	MxBool stillInList;
 	int iter = 0;
 
-	fprintf(stderr, "DBG DeserializeObject: entering loop, p_action.GetObjectId()=0x%08x GetUnknown24()=%d\n",
+	fprintf(stderr, "DBG DeserializeObject: entering loop, objId=0x%08x unk24=%d\n",
 		p_action.GetObjectId(), p_action.GetUnknown24());
 	do {
-		fprintf(stderr, "DBG DeserializeObject: iteration %d unk0x3c.size=%zu\n", iter++, m_unk0x3c.size());
-		fprintf(stderr, "DBG DeserializeObject:   before Find, &p_action=%p\n", &p_action);
 		m_buffer.FUN_100c6f80(p_action.GetUnknown94());
 		result = m_buffer.FUN_100c67b0(this, &p_action, &value);
-		fprintf(stderr, "DBG DeserializeObject: FUN_100c67b0 returned %d\n", result);
 		stillInList = m_unk0x3c.Find(&p_action) != NULL;
-		fprintf(stderr, "DBG DeserializeObject:   after Find, stillInList=%d\n", stillInList);
 	} while (stillInList);
-
-	fprintf(stderr, "DBG DeserializeObject: loop done, result=%d\n", result);
 	return result == SUCCESS ? SUCCESS : FAILURE;
 }

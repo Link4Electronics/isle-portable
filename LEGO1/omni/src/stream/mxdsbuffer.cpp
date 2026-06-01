@@ -123,7 +123,6 @@ MxResult MxDSBuffer::FUN_100c67b0(
 	fprintf(stderr, "DBG FUN_100c67b0: starting loop m_pBuffer=%p writeOffset=%u\n", m_pBuffer, m_writeOffset);
 
 	while ((data = (MxU8*) SkipToData())) {
-		fprintf(stderr, "DBG FUN_100c67b0: found data at offset %td\n", data - m_pBuffer);
 		if (*p_streamingAction != NULL) {
 			MxDSBuffer* buffer = (*p_streamingAction)->GetUnknowna0();
 
@@ -155,11 +154,9 @@ MxResult MxDSBuffer::FUN_100c67b0(
 			result = CreateObject(p_controller, (MxU32*) data, p_action, p_streamingAction);
 
 			if (result == FAILURE) {
-				fprintf(stderr, "DBG FUN_100c67b0: CreateObject returned FAILURE\n");
 				goto done;
 			}
 			else if (result == 1) {
-				fprintf(stderr, "DBG FUN_100c67b0: CreateObject returned 1 (EOS), breaking\n");
 				break;
 			}
 		}
@@ -181,30 +178,22 @@ MxResult MxDSBuffer::CreateObject(
 )
 {
 	if (p_data == NULL) {
-		fprintf(stderr, "DBG CreateObject: p_data is NULL\n");
 		return FAILURE;
 	}
-
-	fprintf(stderr, "DBG CreateObject: fourcc=0x%08x\n", UnalignedRead<MxU32>((MxU8*) p_data));
 
 	MxCore* header = ReadChunk(this, p_data, p_action->GetUnknown24());
 
 	if (header == NULL) {
-		fprintf(stderr, "DBG CreateObject: ReadChunk returned NULL\n");
 		return FAILURE;
 	}
 
 	if (UnalignedRead<MxU32>((MxU8*) p_data) == FOURCC('M', 'x', 'O', 'b')) {
-		fprintf(stderr, "DBG CreateObject: MxOb, starting presenter\n");
 		MxDSAction* action = (MxDSAction*) header;
 		return StartPresenterFromAction(p_controller, p_action, action);
 	}
 	else if (UnalignedRead<MxU32>((MxU8*) p_data) == FOURCC('M', 'x', 'C', 'h')) {
 		MxStreamChunk* chunk = (MxStreamChunk*) header;
-		fprintf(stderr, "DBG CreateObject: MxCh objId=0x%08x hasId=%d\n",
-			chunk->GetObjectId(), m_unk0x30 ? m_unk0x30->HasId(chunk->GetObjectId()) : -1);
-		if (!m_unk0x30->HasId((chunk)->GetObjectId())) {
-			fprintf(stderr, "DBG CreateObject: object id not in HasId list, skipping\n");
+		if (!m_unk0x30->HasId(chunk->GetObjectId())) {
 			delete header;
 			return SUCCESS;
 		}
@@ -212,7 +201,6 @@ MxResult MxDSBuffer::CreateObject(
 		return ParseChunk(p_controller, p_data, p_action, p_streamingAction, chunk);
 	}
 	else {
-		fprintf(stderr, "DBG CreateObject: unknown fourcc\n");
 		delete header;
 	}
 
@@ -343,18 +331,11 @@ MxResult MxDSBuffer::ParseChunk(
 				}
 				else {
 					if (m_unk0x30->HasId(p_header->GetObjectId())) {
-						fprintf(stderr, "DBG ParseChunk: EOS actionObjId=0x%08x headerObjId=0x%08x MATCH\n",
-							p_action->GetObjectId(), p_header->GetObjectId());
 						MxResult v30 = p_controller->VTable0x30(p_action);
-						fprintf(stderr, "DBG ParseChunk: VTable0x30 returned %d\n", v30);
 						if (v30 == SUCCESS) {
 							p_controller->GetProvider()->VTable0x20(p_action);
 							result = 1;
 						}
-					}
-					else {
-						fprintf(stderr, "DBG ParseChunk: EOS actionObjId=0x%08x headerObjId=0x%08x NO MATCH\n",
-							p_action->GetObjectId(), p_header->GetObjectId());
 					}
 				}
 			}
@@ -413,10 +394,8 @@ MxU8* MxDSBuffer::SkipToData()
 	if (m_pIntoBuffer != NULL) {
 		while (TRUE) {
 			MxU32 fourcc = UnalignedRead<MxU32>(m_pIntoBuffer);
-			MxU32 offset = m_pIntoBuffer - m_pBuffer;
 			switch (fourcc) {
 			case FOURCC('M', 'x', 'O', 'b'):
-				fprintf(stderr, "DBG SkipToData: found MxOb at offset %u\n", offset);
 				result = m_pIntoBuffer;
 				m_pIntoBuffer +=
 					(UnalignedRead<MxU32>(m_pIntoBuffer + 4) & 1) + UnalignedRead<MxU32>(m_pIntoBuffer + 4);
@@ -428,7 +407,6 @@ MxU8* MxDSBuffer::SkipToData()
 
 				goto done;
 			case FOURCC('M', 'x', 'C', 'h'):
-				fprintf(stderr, "DBG SkipToData: found MxCh at offset %u\n", offset);
 				result = m_pIntoBuffer;
 				m_pIntoBuffer +=
 					(UnalignedRead<MxU32>(m_pIntoBuffer + 4) & 1) + UnalignedRead<MxU32>(m_pIntoBuffer + 4);
@@ -440,43 +418,31 @@ MxU8* MxDSBuffer::SkipToData()
 
 				goto done;
 			case FOURCC('M', 'x', 'D', 'a'):
-				fprintf(stderr, "DBG SkipToData: skipping MxDa at offset %u\n", offset);
 				m_pIntoBuffer += 8;
 				break;
 			case FOURCC('M', 'x', 'S', 't'):
-				fprintf(stderr, "DBG SkipToData: skipping MxSt at offset %u\n", offset);
 				m_pIntoBuffer += 8;
 				break;
 			case FOURCC('M', 'x', 'H', 'd'):
-				fprintf(stderr, "DBG SkipToData: skipping MxHd at offset %u (size=%u)\n", offset,
-					UnalignedRead<MxU32>(m_pIntoBuffer + 4));
 				m_pIntoBuffer += UnalignedRead<MxU32>(m_pIntoBuffer + 4) + 8;
 				break;
 			case FOURCC('L', 'I', 'S', 'T'):
-				fprintf(stderr, "DBG SkipToData: skipping LIST at offset %u\n", offset);
 				m_pIntoBuffer += 12;
 				break;
 			case FOURCC('R', 'I', 'F', 'F'):
-				fprintf(stderr, "DBG SkipToData: skipping RIFF at offset %u\n", offset);
 				m_pIntoBuffer += 12;
 				break;
 			default:
-				fprintf(stderr, "DBG SkipToData: unknown fourcc 0x%08x at offset %u, stopping\n", fourcc, offset);
 				m_pIntoBuffer = NULL;
 				result = NULL;
 				goto done;
 			}
 
 			if (m_pIntoBuffer > m_pBuffer + m_writeOffset - 8) {
-				fprintf(stderr, "DBG SkipToData: past end of buffer (offset %td > %u - 8)\n",
-					m_pIntoBuffer - m_pBuffer, m_writeOffset);
 				m_pIntoBuffer = NULL;
 				goto done;
 			}
 		}
-	}
-	else {
-		fprintf(stderr, "DBG SkipToData: m_pIntoBuffer is NULL\n");
 	}
 done:
 	m_pIntoBuffer2 = result;
