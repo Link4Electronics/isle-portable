@@ -958,6 +958,9 @@ static bool ProbeOpenGL()
 		return false;
 	}
 
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
 	SDL_PropertiesID props = SDL_CreateProperties();
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, 1);
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, 1);
@@ -970,9 +973,6 @@ static bool ProbeOpenGL()
 		SDL_Log("ProbeOpenGL: SDL_CreateWindowWithProperties failed: %s", SDL_GetError());
 		return false;
 	}
-
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
 	SDL_GLContext context = SDL_GL_CreateContext(testWindow);
 	bool available = (context != NULL);
