@@ -250,6 +250,7 @@ else()
   if(SDL3_FOUND)
     message(STATUS "Found system SDL3 (${SDL3_VERSION})")
   elseif(DOWNLOAD_DEPENDENCIES)
+    set(_sdl3_fetched TRUE)
     include(FetchContent)
     FetchContent_Declare(
       SDL3
@@ -265,6 +266,7 @@ else()
 endif()
 
 if(_sdl3_need_fetch)
+  set(_sdl3_fetched TRUE)
   message(STATUS "Fetching SDL3. This might take a while...")
   include(FetchContent)
 
@@ -1025,7 +1027,7 @@ if (EXISTS "${CLANGFORMAT_BIN}")
 endif()
 
 set(install_extra_targets)
-if(DOWNLOAD_DEPENDENCIES)
+if(_sdl3_fetched)
   get_property(sdl3_type TARGET SDL3::SDL3 PROPERTY TYPE)
   if(sdl3_type STREQUAL "SHARED_LIBRARY" AND NOT ANDROID)
     list(APPEND install_extra_targets "SDL3-shared")
