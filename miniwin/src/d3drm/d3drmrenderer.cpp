@@ -38,6 +38,11 @@ Direct3DRMRenderer* CreateDirect3DRMRenderer(
 {
 #ifdef USE_SDL_GPU
 	if (SDL_memcmp(guid, &SDL3_GPU_GUID, sizeof(GUID)) == 0) {
+		// Respect ISLE_FORCE_SOFTWARE env var (big-endian fallback)
+		const char* forceSw = SDL_getenv("ISLE_FORCE_SOFTWARE");
+		if (forceSw && forceSw[0] == '1') {
+			return nullptr;
+		}
 		return Direct3DRMSDL3GPURenderer::Create(DDSDesc.dwWidth, DDSDesc.dwHeight);
 	}
 #endif

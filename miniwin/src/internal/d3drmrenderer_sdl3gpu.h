@@ -120,6 +120,14 @@ private:
 
 inline static void Direct3DRMSDL3GPU_EnumDevice(LPD3DENUMDEVICESCALLBACK cb, void* ctx)
 {
+	// Allow skipping SDL3 GPU backend via environment variable
+	// (used together with ISLE_FORCE_SOFTWARE=1 on big-endian systems
+	// where GL and GPU rendering are broken).
+	const char* forceSw = SDL_getenv("ISLE_FORCE_SOFTWARE");
+	if (forceSw && forceSw[0] == '1') {
+		return;
+	}
+
 	SDL_GPUDevice* device = SDL_CreateGPUDevice(
 		SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL,
 		false,
