@@ -374,10 +374,10 @@ MxResult LegoBuildingManager::Read(LegoStorage* p_storage)
 	for (MxS32 i = 0; i < sizeOfArray(g_buildingInfo); i++) {
 		LegoBuildingInfo* info = &g_buildingInfo[i];
 
-		if (p_storage->Read(&info->m_sound, sizeof(MxU32)) != SUCCESS) {
+		if (ReadLE(p_storage, info->m_sound) != SUCCESS) {
 			goto done;
 		}
-		if (p_storage->Read(&info->m_move, sizeof(MxU32)) != SUCCESS) {
+		if (ReadLE(p_storage, info->m_move) != SUCCESS) {
 			goto done;
 		}
 		if (p_storage->Read(&info->m_mood, sizeof(MxU8)) != SUCCESS) {
@@ -391,7 +391,7 @@ MxResult LegoBuildingManager::Read(LegoStorage* p_storage)
 		AdjustHeight(i);
 	}
 
-	if (p_storage->Read(&m_nextVariant, sizeof(m_nextVariant)) != SUCCESS) {
+	if (ReadLE(p_storage, m_nextVariant) != SUCCESS) {
 		goto done;
 	}
 

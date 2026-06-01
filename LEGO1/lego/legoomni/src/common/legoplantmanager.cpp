@@ -310,10 +310,10 @@ MxResult LegoPlantManager::Read(LegoStorage* p_storage)
 		if (p_storage->Read(&info->m_variant, sizeof(MxU8)) != SUCCESS) {
 			goto done;
 		}
-		if (p_storage->Read(&info->m_sound, sizeof(MxU32)) != SUCCESS) {
+		if (ReadLE(p_storage, info->m_sound) != SUCCESS) {
 			goto done;
 		}
-		if (p_storage->Read(&info->m_move, sizeof(MxU32)) != SUCCESS) {
+		if (ReadLE(p_storage, info->m_move) != SUCCESS) {
 			goto done;
 		}
 		if (p_storage->Read(&info->m_mood, sizeof(MxU8)) != SUCCESS) {

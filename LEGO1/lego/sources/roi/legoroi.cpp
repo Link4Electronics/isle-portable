@@ -141,7 +141,7 @@ LegoResult LegoROI::Read(
 
 	m_parentROI = p_parentROI;
 
-	if (p_storage->Read(&length, sizeof(LegoU32)) != SUCCESS) {
+	if (ReadLE(p_storage, length) != SUCCESS) {
 		goto done;
 	}
 	m_name = new LegoChar[length + 1];
@@ -166,7 +166,7 @@ LegoResult LegoROI::Read(
 	SET3(m_bounding_box.Min(), box.GetMin());
 	SET3(m_bounding_box.Max(), box.GetMax());
 
-	if (p_storage->Read(&length, sizeof(LegoU32)) != SUCCESS) {
+	if (ReadLE(p_storage, length) != SUCCESS) {
 		goto done;
 	}
 
@@ -205,7 +205,7 @@ LegoResult LegoROI::Read(
 		}
 	}
 	else {
-		if (p_storage->Read(&numLODs, sizeof(LegoU32)) != SUCCESS) {
+		if (ReadLE(p_storage, numLODs) != SUCCESS) {
 			goto done;
 		}
 
@@ -216,7 +216,7 @@ LegoResult LegoROI::Read(
 			const LegoChar* roiName = m_name;
 			LegoU32 offset;
 
-			if (p_storage->Read(&offset, sizeof(LegoU32)) != SUCCESS) {
+			if (ReadLE(p_storage, offset) != SUCCESS) {
 				goto done;
 			}
 
@@ -325,7 +325,7 @@ LegoResult LegoROI::Read(
 		}
 	}
 
-	if (p_storage->Read(&numROIs, sizeof(LegoU32)) != SUCCESS) {
+	if (ReadLE(p_storage, numROIs) != SUCCESS) {
 		goto done;
 	}
 

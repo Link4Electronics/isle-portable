@@ -31,7 +31,7 @@ LegoResult LegoRotationZKey::Read(LegoStorage* p_storage)
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_z, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_z)) != SUCCESS) {
 		return result;
 	}
 
@@ -137,7 +137,7 @@ LegoResult LegoAnimScene::Read(LegoStorage* p_storage)
 	LegoResult result;
 	LegoS32 i;
 
-	if ((result = p_storage->Read(&m_translationKeysCount, sizeof(LegoU16))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_translationKeysCount)) != SUCCESS) {
 		return result;
 	}
 	if (m_translationKeysCount != 0) {
@@ -149,19 +149,11 @@ LegoResult LegoAnimScene::Read(LegoStorage* p_storage)
 		}
 	}
 
-	if ((result = p_storage->Read(&m_targetKeysCount, sizeof(LegoU16))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_targetKeysCount)) != SUCCESS) {
 		return result;
 	}
-	if (m_targetKeysCount != 0) {
-		m_targetKeys = new LegoTranslationKey[m_targetKeysCount];
-		for (i = 0; i < m_targetKeysCount; i++) {
-			if ((result = m_targetKeys[i].Read(p_storage)) != SUCCESS) {
-				goto done;
-			}
-		}
-	}
 
-	if ((result = p_storage->Read(&m_rotationKeysCount, sizeof(LegoU16))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_rotationKeysCount)) != SUCCESS) {
 		return result;
 	}
 	if (m_rotationKeysCount != 0) {
@@ -308,7 +300,7 @@ LegoResult LegoAnimKey::Read(LegoStorage* p_storage)
 	LegoResult result;
 	LegoS32 timeAndFlags;
 
-	if ((result = p_storage->Read(&timeAndFlags, sizeof(LegoS32))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, timeAndFlags)) != SUCCESS) {
 		return result;
 	}
 
@@ -348,15 +340,15 @@ LegoResult LegoTranslationKey::Read(LegoStorage* p_storage)
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_x, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_x)) != SUCCESS) {
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_y, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_y)) != SUCCESS) {
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_z, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_z)) != SUCCESS) {
 		return result;
 	}
 
@@ -411,19 +403,19 @@ LegoResult LegoRotationKey::Read(LegoStorage* p_storage)
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_angle, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_angle)) != SUCCESS) {
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_x, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_x)) != SUCCESS) {
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_y, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_y)) != SUCCESS) {
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_z, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_z)) != SUCCESS) {
 		return result;
 	}
 
@@ -480,15 +472,15 @@ LegoResult LegoScaleKey::Read(LegoStorage* p_storage)
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_x, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_x)) != SUCCESS) {
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_y, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_y)) != SUCCESS) {
 		return result;
 	}
 
-	if ((result = p_storage->Read(&m_z, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_z)) != SUCCESS) {
 		return result;
 	}
 
@@ -573,7 +565,7 @@ LegoResult LegoAnimNodeData::Read(LegoStorage* p_storage)
 	LegoResult result;
 
 	LegoU32 length;
-	if ((result = p_storage->Read(&length, sizeof(LegoU32))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, length)) != SUCCESS) {
 		return result;
 	}
 
@@ -591,7 +583,7 @@ LegoResult LegoAnimNodeData::Read(LegoStorage* p_storage)
 
 	LegoU32 i;
 
-	if ((result = p_storage->Read(&m_numTranslationKeys, sizeof(LegoU16))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_numTranslationKeys)) != SUCCESS) {
 		return result;
 	}
 	if (m_translationKeys) {
@@ -607,39 +599,15 @@ LegoResult LegoAnimNodeData::Read(LegoStorage* p_storage)
 		}
 	}
 
-	if ((result = p_storage->Read(&m_numRotationKeys, sizeof(LegoU16))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_numRotationKeys)) != SUCCESS) {
 		return result;
 	}
-	if (m_rotationKeys) {
-		delete[] m_rotationKeys;
-		m_rotationKeys = NULL;
-	}
-	if (m_numRotationKeys) {
-		m_rotationKeys = new LegoRotationKey[m_numRotationKeys];
-		for (i = 0; i < m_numRotationKeys; i++) {
-			if ((result = m_rotationKeys[i].Read(p_storage)) != SUCCESS) {
-				return result;
-			}
-		}
-	}
 
-	if ((result = p_storage->Read(&m_numScaleKeys, sizeof(LegoU16))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_numScaleKeys)) != SUCCESS) {
 		return result;
 	}
-	if (m_scaleKeys) {
-		delete[] m_scaleKeys;
-		m_scaleKeys = NULL;
-	}
-	if (m_numScaleKeys) {
-		m_scaleKeys = new LegoScaleKey[m_numScaleKeys];
-		for (i = 0; i < m_numScaleKeys; i++) {
-			if ((result = m_scaleKeys[i].Read(p_storage)) != SUCCESS) {
-				return result;
-			}
-		}
-	}
 
-	if ((result = p_storage->Read(&m_numMorphKeys, sizeof(LegoU16))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_numMorphKeys)) != SUCCESS) {
 		return result;
 	}
 	if (m_morphKeys) {
@@ -1054,7 +1022,7 @@ LegoResult LegoAnim::Read(LegoStorage* p_storage, LegoS32 p_parseScene)
 	LegoResult result = FAILURE;
 	LegoU32 length, i;
 
-	if (p_storage->Read(&length, sizeof(LegoU32)) != SUCCESS) {
+	if (ReadLE(p_storage, length) != SUCCESS) {
 		goto done;
 	}
 
@@ -1063,7 +1031,7 @@ LegoResult LegoAnim::Read(LegoStorage* p_storage, LegoS32 p_parseScene)
 
 	for (i = 0; i < length; i++) {
 		LegoU32 length;
-		if (p_storage->Read(&length, sizeof(LegoU32)) != SUCCESS) {
+		if (ReadLE(p_storage, length) != SUCCESS) {
 			goto done;
 		}
 
@@ -1076,7 +1044,7 @@ LegoResult LegoAnim::Read(LegoStorage* p_storage, LegoS32 p_parseScene)
 
 			m_modelList[i].m_name[length] = '\0';
 
-			if (p_storage->Read(&m_modelList[i].m_type, sizeof(LegoU32)) != SUCCESS) {
+			if (ReadLE(p_storage, m_modelList[i].m_type) != SUCCESS) {
 				goto done;
 			}
 		}
@@ -1084,7 +1052,7 @@ LegoResult LegoAnim::Read(LegoStorage* p_storage, LegoS32 p_parseScene)
 		m_numActors++;
 	}
 
-	if ((result = p_storage->Read(&m_duration, sizeof(LegoS32))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_duration)) != SUCCESS) {
 		goto done;
 	}
 

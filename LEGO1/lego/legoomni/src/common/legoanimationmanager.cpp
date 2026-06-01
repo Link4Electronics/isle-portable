@@ -680,7 +680,7 @@ MxResult LegoAnimationManager::LoadWorldInfo(LegoOmni::World p_worldId)
 		}
 
 		MxU32 version;
-		if (storage.Read(&version, sizeof(MxU32)) == FAILURE) {
+		if (ReadLE(&storage, version) == FAILURE) {
 			goto done;
 		}
 
@@ -690,7 +690,7 @@ MxResult LegoAnimationManager::LoadWorldInfo(LegoOmni::World p_worldId)
 			goto done;
 		}
 
-		if (storage.Read(&m_animCount, sizeof(MxU16)) == FAILURE) {
+		if (ReadLE(&storage, m_animCount) == FAILURE) {
 			goto done;
 		}
 
@@ -793,11 +793,11 @@ MxResult LegoAnimationManager::ReadAnimInfo(LegoStorage* p_storage, AnimInfo* p_
 	}
 
 	p_info->m_name[length] = 0;
-	if (p_storage->Read(&p_info->m_objectId, sizeof(MxU32)) == FAILURE) {
+	if (ReadLE(p_storage, p_info->m_objectId) == FAILURE) {
 		goto done;
 	}
 
-	if (p_storage->Read(&p_info->m_location, sizeof(MxS16)) == FAILURE) {
+	if (ReadLE(p_storage, p_info->m_location) == FAILURE) {
 		goto done;
 	}
 	if (p_storage->Read(&p_info->m_unk0x0a, sizeof(MxU8)) == FAILURE) {
@@ -814,7 +814,7 @@ MxResult LegoAnimationManager::ReadAnimInfo(LegoStorage* p_storage, AnimInfo* p_
 	}
 
 	for (i = 0; i < (MxS32) sizeOfArray(p_info->m_unk0x10); i++) {
-		if (p_storage->Read(&p_info->m_unk0x10[i], sizeof(float)) != SUCCESS) {
+		if (ReadLE(p_storage, p_info->m_unk0x10[i]) != SUCCESS) {
 			goto done;
 		}
 	}
@@ -858,14 +858,20 @@ MxResult LegoAnimationManager::ReadModelInfo(LegoStorage* p_storage, ModelInfo* 
 		goto done;
 	}
 
-	if (p_storage->Read(p_info->m_location, 3 * sizeof(float)) != SUCCESS) {
-		goto done;
+	for (MxS32 _i = 0; _i < 3; _i++) {
+		if (ReadLE(p_storage, p_info->m_location[_i]) != SUCCESS) {
+			goto done;
+		}
 	}
-	if (p_storage->Read(p_info->m_direction, 3 * sizeof(float)) != SUCCESS) {
-		goto done;
+	for (MxS32 _i = 0; _i < 3; _i++) {
+		if (ReadLE(p_storage, p_info->m_direction[_i]) != SUCCESS) {
+			goto done;
+		}
 	}
-	if (p_storage->Read(p_info->m_up, 3 * sizeof(float)) != SUCCESS) {
-		goto done;
+	for (MxS32 _i = 0; _i < 3; _i++) {
+		if (ReadLE(p_storage, p_info->m_up[_i]) != SUCCESS) {
+			goto done;
+		}
 	}
 	if (p_storage->Read(&p_info->m_unk0x2c, sizeof(MxU8)) == FAILURE) {
 		goto done;

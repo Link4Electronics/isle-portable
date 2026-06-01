@@ -48,7 +48,7 @@ LegoResult LegoMesh::Read(LegoStorage* p_storage)
 	if ((result = m_color.Read(p_storage)) != SUCCESS) {
 		return result;
 	}
-	if ((result = p_storage->Read(&m_alpha, sizeof(LegoFloat))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, m_alpha)) != SUCCESS) {
 		return result;
 	}
 	if ((result = p_storage->Read(&m_shading, sizeof(LegoU8))) != SUCCESS) {
@@ -64,7 +64,7 @@ LegoResult LegoMesh::Read(LegoStorage* p_storage)
 		return result;
 	}
 
-	if ((result = p_storage->Read(&textureLength, sizeof(LegoU32))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, textureLength)) != SUCCESS) {
 		return result;
 	}
 	if (textureLength) {
@@ -78,7 +78,7 @@ LegoResult LegoMesh::Read(LegoStorage* p_storage)
 		SDL_strlwr(m_textureName);
 	}
 
-	if ((result = p_storage->Read(&materialLength, sizeof(LegoU32))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, materialLength)) != SUCCESS) {
 		return result;
 	}
 	if (materialLength) {

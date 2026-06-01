@@ -2,6 +2,7 @@
 #define __LEGOSTORAGE_H
 
 #include "legotypes.h"
+#include "mxendian.h"
 #include "mxgeometry/mxgeometry3d.h"
 #include "mxstring.h"
 
@@ -53,14 +54,16 @@ public:
 	// FUNCTION: BETA10 0x10017ce0
 	LegoStorage* WriteS16(LegoS16 p_data)
 	{
-		Write(&p_data, sizeof(LegoS16));
+		LegoS16 le = (LegoS16) SDL_Swap16LE((MxU16) p_data);
+		Write(&le, sizeof(LegoS16));
 		return this;
 	}
 
 	// FUNCTION: BETA10 0x1004b110
 	LegoStorage* WriteU16(LegoU16 p_data)
 	{
-		Write(&p_data, sizeof(LegoU16));
+		LegoU16 le = SDL_Swap16LE(p_data);
+		Write(&le, sizeof(LegoU16));
 		return this;
 	}
 
@@ -68,7 +71,8 @@ public:
 	// FUNCTION: BETA10 0x10088540
 	LegoStorage* WriteS32(MxS32 p_data)
 	{
-		Write(&p_data, sizeof(MxS32));
+		MxS32 le = (MxS32) SDL_Swap32LE((MxU32) p_data);
+		Write(&le, sizeof(MxS32));
 		return this;
 	}
 
@@ -76,14 +80,20 @@ public:
 	// FUNCTION: BETA10 0x1004b150
 	LegoStorage* WriteU32(MxU32 p_data)
 	{
-		Write(&p_data, sizeof(MxU32));
+		MxU32 le = SDL_Swap32LE(p_data);
+		Write(&le, sizeof(MxU32));
 		return this;
 	}
 
 	// FUNCTION: BETA10 0x10073610
 	LegoStorage* WriteFloat(LegoFloat p_data)
 	{
-		Write(&p_data, sizeof(LegoFloat));
+		LegoFloat le;
+		MxU32 val;
+		memcpy(&val, &p_data, sizeof(val));
+		val = SDL_Swap32LE(val);
+		memcpy(&le, &val, sizeof(le));
+		Write(&le, sizeof(LegoFloat));
 		return this;
 	}
 
@@ -125,6 +135,7 @@ public:
 	LegoStorage* ReadS16(LegoS16& p_data)
 	{
 		Read(&p_data, sizeof(LegoS16));
+		p_data = EndianReadLES16(&p_data);
 		return this;
 	}
 
@@ -132,6 +143,7 @@ public:
 	LegoStorage* ReadU16(LegoU16& p_data)
 	{
 		Read(&p_data, sizeof(LegoU16));
+		p_data = EndianReadLE16(&p_data);
 		return this;
 	}
 
@@ -140,6 +152,7 @@ public:
 	LegoStorage* ReadS32(MxS32& p_data)
 	{
 		Read(&p_data, sizeof(MxS32));
+		p_data = EndianReadLES32(&p_data);
 		return this;
 	}
 
@@ -148,6 +161,7 @@ public:
 	LegoStorage* ReadU32(MxU32& p_data)
 	{
 		Read(&p_data, sizeof(MxU32));
+		p_data = EndianReadLE32(&p_data);
 		return this;
 	}
 
@@ -155,6 +169,7 @@ public:
 	LegoStorage* ReadFloat(LegoFloat& p_data)
 	{
 		Read(&p_data, sizeof(LegoFloat));
+		p_data = EndianReadLEFloat(&p_data);
 		return this;
 	}
 
@@ -188,6 +203,45 @@ public:
 protected:
 	LegoU8 m_mode; // 0x04
 };
+
+template<typename T>
+inline LegoResult ReadLE(LegoStorage* p_storage, T& p_val, LegoU32 p_size)
+{
+	LegoResult result = p_storage->Read(&p_val, p_size);
+	if (result == SUCCESS) {
+		switch (p_size) {
+		case 2: {
+			MxU16 tmp;
+			memcpy(&tmp, &p_val, sizeof(tmp));
+			tmp = SDL_Swap16LE(tmp);
+			memcpy(&p_val, &tmp, sizeof(tmp));
+			break;
+		}
+		case 4: {
+			MxU32 tmp;
+			memcpy(&tmp, &p_val, sizeof(tmp));
+			tmp = SDL_Swap32LE(tmp);
+			memcpy(&p_val, &tmp, sizeof(tmp));
+			break;
+		}
+		case 8: {
+			MxU64 tmp;
+			memcpy(&tmp, &p_val, sizeof(tmp));
+			tmp = SDL_Swap64LE(tmp);
+			memcpy(&p_val, &tmp, sizeof(tmp));
+			break;
+		}
+		}
+	}
+	return result;
+}
+
+// Convenience overload that deduces p_size from sizeof(T)
+template<typename T>
+inline LegoResult ReadLE(LegoStorage* p_storage, T& p_val)
+{
+	return ReadLE(p_storage, p_val, sizeof(T));
+}
 
 // VTABLE: LEGO1 0x100db710
 // SIZE 0x10

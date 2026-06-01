@@ -64,7 +64,7 @@ LegoResult LegoTree::Read(LegoStorage* p_storage, LegoTreeNode*& p_node)
 		return result;
 	}
 	LegoU32 numChildren;
-	if ((result = p_storage->Read(&numChildren, sizeof(LegoU32))) != SUCCESS) {
+	if ((result = ReadLE(p_storage, numChildren)) != SUCCESS) {
 		return result;
 	}
 	if (numChildren) {

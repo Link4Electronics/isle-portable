@@ -118,15 +118,16 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 	LegoU32(*textureIndices)[3] = NULL;
 	LegoTextureInfo* textureInfo = NULL;
 	LegoU8 local4c = 0; // BETA10 only, only written, never read
-	LegoU32 numPolys, numVertices, numTextureIndices, meshIndex;
+	LegoU32 numTextureIndices, meshIndex;
 	LegoU32 i, indexBackwards, indexForwards, tempNumVertsAndNormals;
+	LegoU16 numPolys, numVertices;
 	LegoFloat red, green, blue, alpha;
 	IDirect3DRMMesh* d3dmesh;
 	D3DRMGROUPINDEX index;
 
 	unsigned char paletteEntries[256];
 
-	if (p_storage->Read(&m_flags, sizeof(LegoU32)) != SUCCESS) {
+	if (ReadLE(p_storage, m_flags) != SUCCESS) {
 		goto done;
 	}
 
@@ -144,7 +145,7 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 
 	m_meshBuilder = p_renderer->CreateMeshBuilder();
 
-	if (p_storage->Read(&m_numMeshes, sizeof(LegoU32)) != SUCCESS) {
+	if (ReadLE(p_storage, m_numMeshes) != SUCCESS) {
 		goto done;
 	}
 
@@ -165,7 +166,7 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 	indexBackwards = m_numMeshes - 1;
 	indexForwards = 0;
 
-	if (p_storage->Read(&tempNumVertsAndNormals, sizeof(LegoU32)) != SUCCESS) {
+	if (ReadLE(p_storage, tempNumVertsAndNormals) != SUCCESS) {
 		assertIfBeta10(0);
 		goto done;
 	}
@@ -174,7 +175,7 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 	numVerts = *((LegoU16*) &tempNumVertsAndNormals) & MAXSHORT;
 	numNormals = (*((LegoU16*) &tempNumVertsAndNormals + 1) >> 1) & MAXSHORT;
 
-	if (p_storage->Read(&numTextureVertices, sizeof(LegoS32)) != SUCCESS) {
+	if (ReadLE(p_storage, numTextureVertices) != SUCCESS) {
 		assertIfBeta10(0);
 		goto done;
 	}
@@ -186,6 +187,15 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 			assertIfBeta10(0);
 			goto done;
 		}
+		{
+			float* fp = (float*) vertices;
+			for (LegoU32 j = 0; j < numVerts * 3; j++) {
+				MxU32 tmp;
+				memcpy(&tmp, &fp[j], sizeof(tmp));
+				tmp = SDL_Swap32LE(tmp);
+				memcpy(&fp[j], &tmp, sizeof(tmp));
+			}
+		}
 	}
 
 	if (numNormals > 0) {
@@ -193,6 +203,15 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 		if (p_storage->Read(normals, numNormals * 3 * sizeof(float)) != SUCCESS) {
 			assertIfBeta10(0);
 			goto done;
+		}
+		{
+			float* fp = (float*) normals;
+			for (LegoU32 j = 0; j < numNormals * 3; j++) {
+				MxU32 tmp;
+				memcpy(&tmp, &fp[j], sizeof(tmp));
+				tmp = SDL_Swap32LE(tmp);
+				memcpy(&fp[j], &tmp, sizeof(tmp));
+			}
 		}
 	}
 
@@ -203,6 +222,15 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 			assertIfBeta10(0);
 			goto done;
 		}
+		{
+			float* fp = (float*) textureVertices;
+			for (LegoU32 j = 0; j < numTextureVertices * 2; j++) {
+				MxU32 tmp;
+				memcpy(&tmp, &fp[j], sizeof(tmp));
+				tmp = SDL_Swap32LE(tmp);
+				memcpy(&fp[j], &tmp, sizeof(tmp));
+			}
+		}
 	}
 
 	for (i = 0; i < m_numMeshes; i++) {
@@ -210,14 +238,14 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 		const LegoChar *textureName, *materialName;
 		Tgl::ShadingModel shadingModel;
 
-		if (p_storage->Read(&numPolys, 2) != SUCCESS) {
+		if (ReadLE(p_storage, numPolys) != SUCCESS) {
 			assertIfBeta10(0);
 			goto done;
 		}
 
 		m_numPolys += numPolys & USHRT_MAX;
 
-		if (p_storage->Read(&numVertices, 2) != SUCCESS) {
+		if (ReadLE(p_storage, numVertices) != SUCCESS) {
 			assertIfBeta10(0);
 			goto done;
 		}
@@ -227,8 +255,14 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 			assertIfBeta10(0);
 			goto done;
 		}
+		{
+			LegoU32* pi = (LegoU32*) polyIndices;
+			for (LegoU32 j = 0; j < (numPolys & USHRT_MAX) * 3; j++) {
+				pi[j] = SDL_Swap32LE(pi[j]);
+			}
+		}
 
-		if (p_storage->Read(&numTextureIndices, sizeof(numTextureIndices)) != SUCCESS) {
+		if (ReadLE(p_storage, numTextureIndices) != SUCCESS) {
 			assertIfBeta10(0);
 			goto done;
 		}
@@ -238,6 +272,12 @@ LegoResult LegoLOD::Read(Tgl::Renderer* p_renderer, LegoTextureContainer* p_text
 			if (p_storage->Read(textureIndices, (numPolys & USHRT_MAX) * 3 * sizeof(LegoU32)) != SUCCESS) {
 				assertIfBeta10(0);
 				goto done;
+			}
+			{
+				LegoU32* ti = (LegoU32*) textureIndices;
+				for (LegoU32 j = 0; j < (numPolys & USHRT_MAX) * 3; j++) {
+					ti[j] = SDL_Swap32LE(ti[j]);
+				}
 			}
 		}
 		else {

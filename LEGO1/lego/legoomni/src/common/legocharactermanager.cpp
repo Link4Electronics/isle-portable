@@ -192,10 +192,10 @@ MxResult LegoCharacterManager::Read(LegoStorage* p_storage)
 	for (MxS32 i = 0; i < sizeOfArray(g_actorInfo); i++) {
 		LegoActorInfo* info = &g_actorInfo[i];
 
-		if (p_storage->Read(&info->m_sound, sizeof(MxS32)) != SUCCESS) {
+		if (ReadLE(p_storage, info->m_sound) != SUCCESS) {
 			goto done;
 		}
-		if (p_storage->Read(&info->m_move, sizeof(MxS32)) != SUCCESS) {
+		if (ReadLE(p_storage, info->m_move) != SUCCESS) {
 			goto done;
 		}
 		if (p_storage->Read(&info->m_mood, sizeof(MxU8)) != SUCCESS) {
