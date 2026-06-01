@@ -68,8 +68,13 @@ MxU32 MxStreamChunk::ReadChunkHeader(MxU8* p_chunkData)
 // FUNCTION: BETA10 0x10151517
 MxResult MxStreamChunk::SendChunk(MxDSSubscriberList& p_subscriberList, MxBool p_append, MxS16 p_obj24val)
 {
+	fprintf(stderr, "DBG SendChunk: objId=0x%08x flags=0x%04x time=%d len=%u obj24val=%d nSubscribers=%zu\n",
+		m_objectId, m_flags, (MxS32) m_time, m_length, p_obj24val, p_subscriberList.size());
 	for (MxDSSubscriberList::iterator it = p_subscriberList.begin(); it != p_subscriberList.end(); it++) {
+		fprintf(stderr, "DBG SendChunk  subscriber objId=0x%08x unk48=%d\n",
+			(*it)->GetObjectId(), (*it)->GetUnknown48());
 		if ((*it)->GetObjectId() == m_objectId && (*it)->GetUnknown48() == p_obj24val) {
+			fprintf(stderr, "DBG SendChunk  MATCH, sending\n");
 			if (m_flags & DS_CHUNK_END_OF_STREAM && m_buffer) {
 				m_buffer->ReleaseRef(this);
 				m_buffer = NULL;
@@ -80,6 +85,7 @@ MxResult MxStreamChunk::SendChunk(MxDSSubscriberList& p_subscriberList, MxBool p
 			return SUCCESS;
 		}
 	}
+	fprintf(stderr, "DBG SendChunk: no subscriber matched, returning FAILURE\n");
 
 	return FAILURE;
 }
