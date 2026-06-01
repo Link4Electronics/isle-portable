@@ -89,12 +89,14 @@ MxResult MxRAMStreamController::DeserializeObject(MxDSStreamingAction& p_action)
 	MxBool stillInList;
 	int iter = 0;
 
-	fprintf(stderr, "DBG DeserializeObject: entering loop, objId=0x%08x unk24=%d\n",
-		p_action.GetObjectId(), p_action.GetUnknown24());
 	do {
 		m_buffer.FUN_100c6f80(p_action.GetUnknown94());
 		result = m_buffer.FUN_100c67b0(this, &p_action, &value);
 		stillInList = m_unk0x3c.Find(&p_action) != NULL;
+		if (!stillInList) break;
+		if (++iter > 100) { fprintf(stderr, "DESERIALIZE STUCK: objId=%d unk24=%d unk94=%u writeOff=%u buf=%p result=%d\n",
+			p_action.GetObjectId(), p_action.GetUnknown24(), p_action.GetUnknown94(),
+			m_buffer.GetWriteOffset(), m_buffer.GetBuffer(), result); break; }
 	} while (stillInList);
 	return result == SUCCESS ? SUCCESS : FAILURE;
 }

@@ -392,6 +392,7 @@ MxU8* MxDSBuffer::SkipToData()
 	MxU8* result = NULL;
 
 	if (m_pIntoBuffer != NULL) {
+		if (m_pIntoBuffer < m_pBuffer) { fprintf(stderr, "SKIP_BAD_BUF: m_pIntoBuffer=%p < m_pBuffer=%p\n", m_pIntoBuffer, m_pBuffer); }
 		while (TRUE) {
 			MxU32 fourcc = UnalignedRead<MxU32>(m_pIntoBuffer);
 			switch (fourcc) {
@@ -433,12 +434,16 @@ MxU8* MxDSBuffer::SkipToData()
 				m_pIntoBuffer += 12;
 				break;
 			default:
+				if (m_pBuffer) { fprintf(stderr, "SKIP_UNKNOWN: offset=%td fourcc=0x%08x\n",
+					m_pIntoBuffer - m_pBuffer, fourcc); }
 				m_pIntoBuffer = NULL;
 				result = NULL;
 				goto done;
 			}
 
 			if (m_pIntoBuffer > m_pBuffer + m_writeOffset - 8) {
+				fprintf(stderr, "SKIP_PAST_END: offset=%td writeOffset=%u\n",
+					m_pIntoBuffer - m_pBuffer, m_writeOffset);
 				m_pIntoBuffer = NULL;
 				goto done;
 			}
