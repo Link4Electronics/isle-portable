@@ -262,8 +262,8 @@ void MxDSAction::Deserialize(MxU8*& p_source, MxS16 p_flags)
 
 	// clang-format off
 	m_flags           = UnalignedRead<MxU32>(p_source);   p_source += sizeof(MxU32);
-	m_startTime       = UnalignedRead<MxLong>(p_source);  p_source += sizeof(MxLong);
-	m_duration        = UnalignedRead<MxLong>(p_source);  p_source += sizeof(MxLong);
+	m_startTime       = UnalignedRead<MxS32>(p_source);   p_source += sizeof(MxLong);
+	m_duration        = UnalignedRead<MxS32>(p_source);   p_source += sizeof(MxLong);
 	m_loopCount       = UnalignedRead<MxS32>(p_source);   p_source += sizeof(MxS32);
 	m_location[0]     = UnalignedRead<double>(p_source);  p_source += sizeof(double);
 	m_location[1]     = UnalignedRead<double>(p_source);  p_source += sizeof(double);
