@@ -67,6 +67,12 @@ MxResult LegoModelPresenter::CreateROI(MxDSChunk* p_chunk)
 	if (!(m_roi = new LegoROI(VideoManager()->GetRenderer()))) {
 		goto done;
 	}
+	fprintf(stderr, "DBG CreateROI: chunk=%p data=%p length=%u\n",
+		p_chunk, p_chunk->GetData(), p_chunk->GetLength());
+	if (p_chunk->GetData() != NULL && p_chunk->GetLength() >= 8) {
+		MxU32* d = (MxU32*) p_chunk->GetData();
+		fprintf(stderr, "DBG CreateROI: d[0]=0x%08x d[1]=0x%08x\n", d[0], d[1]);
+	}
 	if (ReadLE(&storage, version) != SUCCESS) {
 		goto done;
 	}

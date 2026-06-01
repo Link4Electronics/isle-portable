@@ -163,5 +163,8 @@ MxU32 ReadData(MxU8* p_buffer, MxU32 p_size)
 		flags &= ~DS_CHUNK_SPLIT;
 		EndianWriteLE16(MxStreamChunk::IntoFlags(data2), flags);
 	}
-	return MxDSChunk::Size(data2) + (MxU32) (data2 - p_buffer);
+	MxU32 ret = MxDSChunk::Size(data2) + (MxU32) (data2 - p_buffer);
+	fprintf(stderr, "DBG ReadData: data2-offset=%zu Size(data2)=%u returning %u\n",
+		data2 - p_buffer, MxDSChunk::Size(data2), ret);
+	return ret;
 }

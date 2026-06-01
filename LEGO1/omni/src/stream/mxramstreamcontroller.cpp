@@ -20,10 +20,12 @@ MxResult MxRAMStreamController::Open(const char* p_filename)
 			return FAILURE;
 		}
 
+		MxU32 fileSize = ((MxRAMStreamProvider*) m_provider)->GetFileSize();
 		MxU32 size = ReadData(
 			((MxRAMStreamProvider*) m_provider)->GetBufferOfFileSize(),
-			((MxRAMStreamProvider*) m_provider)->GetFileSize()
+			fileSize
 		);
+		fprintf(stderr, "DBG MxRAMStreamController::Open: fileSize=%u compactedSize=%u\n", fileSize, size);
 		m_buffer.SetBufferPointer(
 			((MxRAMStreamProvider*) m_provider)->GetBufferOfFileSize(),
 			size

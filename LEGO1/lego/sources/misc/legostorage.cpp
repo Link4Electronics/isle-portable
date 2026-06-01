@@ -20,6 +20,16 @@ LegoMemory::LegoMemory(void* p_buffer, LegoU32 p_size) : LegoStorage()
 // FUNCTION: LEGO1 0x10099160
 LegoResult LegoMemory::Read(void* p_buffer, LegoU32 p_size)
 {
+	if (m_position + p_size > m_size) {
+		fprintf(stderr, "DBG LegoMemory::Read FAIL: m_position=%u m_size=%u p_size=%u m_buffer=%p\n",
+			m_position, m_size, p_size, m_buffer);
+		if (m_buffer != NULL && m_size > 0) {
+			fprintf(stderr, "DBG LegoMemory buffer[0..15]:");
+			for (LegoU32 i = 0; i < 16 && i < m_size; i++)
+				fprintf(stderr, " %02x", m_buffer[i]);
+			fprintf(stderr, "\n");
+		}
+	}
 	assert(m_position + p_size <= m_size);
 	memcpy(p_buffer, m_buffer + m_position, p_size);
 	m_position += p_size;

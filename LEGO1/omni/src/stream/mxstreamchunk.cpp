@@ -38,6 +38,10 @@ MxU32 MxStreamChunk::ReadChunkHeader(MxU8* p_chunkData)
 	if (p_chunkData) {
 		MxU8* chunkData = p_chunkData;
 
+		fprintf(stderr, "DBG ReadChunkHeader: raw bytes:");
+		for (MxU32 i = 0; i < 14; i++) fprintf(stderr, " %02x", chunkData[i]);
+		fprintf(stderr, "\n");
+
 		m_flags = EndianReadLE16(p_chunkData);
 		p_chunkData += sizeof(MxU16);
 
@@ -52,6 +56,9 @@ MxU32 MxStreamChunk::ReadChunkHeader(MxU8* p_chunkData)
 
 		m_data = p_chunkData;
 		headersize = p_chunkData - chunkData;
+
+		fprintf(stderr, "DBG ReadChunkHeader: flags=0x%04x objId=0x%08x time=%d length=%u\n",
+			m_flags, m_objectId, (MxS32) m_time, m_length);
 	}
 
 	return headersize;
